@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppaTrack | Smart EV Bike with Accident Prevention</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== ROOT & GLOBAL STYLES ===== */
+        :root {
+            --primary: #00C897;  /* Fresh Green */
+            --secondary: #FF6B6B;  /* Vibrant Red */
+            --accent: #4D96FF;  /* Electric Blue */
+            --light: #F6FBF9;  /* Light Background */
+            --dark: #1A2E35;  /* Dark Text */
+            --nav-height: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+            padding-top: var(--nav-height);
+        }
+
+        /* ===== SMOOTH SCROLL & ANIMATIONS ===== */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .fade-in {
+            opacity: 0;
+            /* Animation handled by JS Intersection Observer now */
+            /* animation: fadeIn 1s ease-in-out forwards; */
+        }
+
+        .slide-in-left {
+            opacity: 0;
+             /* Animation handled by JS Intersection Observer now */
+            /* animation: slideInLeft 0.8s ease-out forwards; */
+        }
+
+        .slide-in-right {
+            opacity: 0;
+             /* Animation handled by JS Intersection Observer now */
+            /* animation: slideInRight 0.8s ease-out forwards; */
+        }
+
+        .delay-1 { transition-delay: 0.2s !important; } /* Use transition-delay with JS observer */
+        .delay-2 { transition-delay: 0.4s !important; }
+        .delay-3 { transition-delay: 0.6s !important; }
+        .delay-4 { transition-delay: 0.8s !important; }
+        .delay-5 { transition-delay: 1s !important; }
+
+        /* ===== NAVBAR (ANIMATED) ===== */
+        header {
+            background-color: white;
+            /* box-shadow initially removed */
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            top: 0;
+            animation: slideDown 0.5s ease-out;
+            transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+        }
+        /* Add shadow when header has 'scrolled' class */
+        header.scrolled {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: var(--nav-height);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s;
+            padding: 0.5rem 0;
+            border-radius: 4px; /* Add subtle rounding for background hover */
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            /* Underline effect */
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        /* Add subtle background on hover */
+        .nav-links a:hover {
+            background-color: rgba(0, 200, 151, 0.08); /* Light primary background */
+            padding: 0.5rem 0.8rem; /* Adjust padding for background */
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.8rem;
+            color: var(--dark);
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.active {
+            transform: rotate(90deg);
+            color: var(--primary);
+        }
+
+        /* ===== HERO SECTION (HOME) ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.1), rgba(77, 150, 255, 0.1));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 200, 151, 0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .hero-text {
+            flex: 1;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 200, 151, 0.3);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer; /* Ensure button looks clickable */
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 200, 151, 0.4);
+        }
+
+        .cta-button.secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .cta-button.secondary:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .cta-button:focus:not(:active)::after {
+            animation: pulse 1s ease-out;
+        }
+
+        .hero-images {
+            flex: 1;
+            display: flex;
+            gap: 1rem;
+            position: relative;
+            perspective: 1200px; /* Slightly increase perspective */
+        }
+
+        .hero-img {
+            width: 48%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            border: 3px solid transparent; /* Add transparent border initially */
+        }
+
+        .hero-img:hover {
+            transform: scale(1.06) rotateY(7deg) translateZ(10px); /* Enhance hover effect */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(0, 200, 151, 0.5); /* Show border on hover */
+        }
+
+        /* ===== ABOUT SECTION ===== */
+        .about {
+            padding: 6rem 5%;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about::before {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(77, 150, 255, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--dark);
+            position: relative;
+            display: block; /* Changed from inline-block */
+            width: 100%; /* Ensure it takes full width for centering */
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 60px; /* Make the initial line shorter */
+            height: 4px;
+            background: var(--primary);
+            bottom: -10px;
+            left: 50%; /* Center the starting point */
+            transform: translateX(-50%); /* Pull it back by half its width to center */
+            border-radius: 2px;
+            transform-origin: center;
+            transition: width 0.3s ease-in-out; /* Animate the width change */
+        }
+
+        .section-title:hover::after {
+             width: 100px; /* Expand the line on hover */
+        }
+
+        .about-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-portrait {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .portrait {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .portrait:hover {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .about-text {
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            color: #555;
+            position: relative;
+        }
+
+        .about-poster {
+            text-align: center;
+            margin-top: 2rem;
+            width: 100%;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .poster-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .poster {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid var(--primary);
+        }
+
+        .poster:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .award-note {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 1rem;
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: rgba(0, 200, 151, 0.1);
+            border-radius: 50px;
+            border: 2px dashed var(--primary);
+            transition: all 0.3s;
+        }
+
+        .award-note:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 200, 151, 0.2);
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            padding: 6rem 5%;
+            background-color: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .features::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.03), rgba(77, 150, 255, 0.03));
+            z-index: -1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .feature-card h3::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            bottom: -5px;
+            left: 0;
+            transition: width 0.3s;
+        }
+
+        .feature-card:hover h3::after {
+            width: 100%;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* ===== INVESTORS SECTION ===== */
+        .investors {
+            padding: 6rem 5%;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .investors::before {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 200, 151, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .investors-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .investors-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            color: #555;
+            max-width: 800px;
+        }
+
+        /* ===== CONTACT SECTION ===== */
+        .contact {
+            padding: 6rem 5%;
+            background-color: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(77, 150, 255, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        /* New Contact Box Styles */
+        .contact-content-wrapper {
+            max-width: 900px; /* Max width for the content */
+            margin: 2rem auto 0; /* Add margin top */
+            background-color: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 2rem; /* Space between image and form */
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .contact-content-wrapper:hover {
+             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-image, .contact-form-new {
+            flex: 1 1 300px; /* Allow flex grow/shrink, base width 300px */
+        }
+
+        .contact-image img {
+            width: 100%;
+            height: auto; /* Maintain aspect ratio */
+            max-height: 350px; /* Adjusted max height */
+            object-fit: contain; /* Fit the whole image inside */
+            border-radius: 10px;
+        }
+
+        .contact-form-new h3 { /* Optional: Add a heading to the form side */
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        /* Reusing existing form group styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        /* Apply existing input/textarea styles */
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: rgba(0, 0, 0, 0.02);
+            margin-top: 0; /* Override default margin if any */
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 200, 151, 0.2);
+            background-color: white;
+        }
+
+        .form-group textarea {
+            height: 120px; /* Adjusted height */
+            resize: vertical;
+        }
+
+        /* Style for new labels */
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        /* Style for the status message area */
+        .form-status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .form-status.success {
+            background-color: rgba(0, 200, 151, 0.15); /* Light green */
+            border: 1px solid var(--primary);
+            color: var(--dark);
+            display: block; /* Show when success class is added */
+        }
+        /* Add error styling if needed */
+        /* Reusing existing submit button styles */
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 1rem;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem; /* Add some space above button */
+        }
+
+        .submit-btn:hover {
+            background-color: transparent;
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 200, 151, 0.2);
+        }
+
+        /* Remove styles for elements no longer used in contact form */
+        /* .form-group label, .form-group .error-message, .form-group select, .status, .submit-btn .spinner */
+
+        /* ===== FOOTER ===== */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 3rem 2rem;
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 200, 151, 0.05), rgba(77, 150, 255, 0.05));
+            z-index: 0;
+        }
+
+        .footer-content {
+            position: relative;
+            z-index: 1;
+            /* Add fade-in class for animation */
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+
+        .social-icons {
+            margin-bottom: 1.5rem;
+        }
+
+        .social-icons a {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .social-icons a:hover {
+            color: var(--primary);
+            transform: translateY(-3px) scale(1.2);
+        }
+
+        .copyright {
+            margin-top: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== SCROLL TO TOP BUTTON ===== */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 999;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .scroll-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            background-color: var(--dark);
+            transform: translateY(-5px) scale(1.1);
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 992px) {
+            .hero-text h1 {
+                font-size: 3rem;
+            }
+            .contact-content-wrapper {
+                padding: 1.5rem; /* Adjust padding */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem 5%;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: var(--nav-height);
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - var(--nav-height));
+                background-color: white;
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem 0;
+                transition: left 0.3s;
+                gap: 1.5rem;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+
+            .nav-links a {
+                font-size: 1.2rem;
+            }
+             /* Adjust hover padding for mobile menu */
+            .nav-links a:hover {
+                padding: 0.5rem 1rem;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+                padding-top: 2rem; /* Add padding when stacked */
+            }
+
+            .hero-images {
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .hero-img {
+                width: 45%;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .portrait {
+                width: 200px;
+                height: 200px;
+            }
+
+            .about-text {
+                padding: 0 1rem;
+            }
+
+            .cta-buttons {
+                justify-content: center;
+            }
+
+            /* Stack contact image and form */
+            .contact-content-wrapper {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .contact-image {
+                order: 1; /* Show image first */
+                max-width: 350px; /* Limit image width when stacked */
+                margin: 0 auto; /* Center image */
+            }
+            .contact-form-new {
+                 order: 2; /* Show form second */
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .hero-images {
+                flex-direction: column;
+            }
+
+            .hero-img {
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .scroll-top {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .award-note {
+                font-size: 1rem;
+                padding: 0.6rem 1.2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .cta-button {
+                width: 100%;
+                text-align: center;
+            }
+
+            .contact-content-wrapper {
+                padding: 1rem; /* Further adjust padding */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER & NAVBAR ===== -->
+    <header>
+        <nav class="navbar">
+            <a href="#" class="logo">
+                <i class="fas fa-motorcycle"></i>AppaTrack
+            </a>
+            <div class="nav-links">
+                <a href="#home" class="active">Home</a>
+                <a href="#about">About</a>
+                <a href="#features">Features</a>
+                <a href="#investors">Investors</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ===== HERO SECTION (HOME) ===== -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-text slide-in-left">
+                <h1>Smart EV Bike with <span style="color: var(--primary);">Accident Prevention</span></h1>
+                <p>AppaTrack integrates <strong>6 advanced safety systems</strong> to prevent bike accidents before they happen. Our technology ensures a safer ride with features like alcohol detection, speed control, airbag protection, and real-time tracking.</p>
+                <div class="cta-buttons">
+                    <a href="#features" class="cta-button">Explore Features</a>
+                    <a href="#contact" class="cta-button secondary">Contact Us</a>
+                </div>
+            </div>
+            <div class="hero-images slide-in-right delay-1"> 
+                <img src="Images/Vishnu Bike Ride.jpg" alt="AppaTrack EV Bike" class="hero-img">
+                <img src="Images/Bike Photo.jpg" alt="Smart Helmet Sensor" class="hero-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ABOUT SECTION ===== -->
+    <section id="about" class="about">
+        <h2 class="section-title fade-in">About <span>Me</span></h2>
+        <div class="about-content">
+            <div class="about-portrait fade-in delay-1">
+                <img src="Images/Vishnu HTML.jpg" alt="Vishnu Portrait" class="portrait">
+            </div>
+            <div class="about-text fade-in delay-2">
+                <p>I'm Vishnu, a recent graduate with a Bachelor's degree in Electronics and Communication Engineering. I'm passionate about developing innovative solutions to real-world problems, particularly in the field of transportation safety.</p>
+                <p>I participated in the MSME Idea Hackathon 2.0 where I presented AppaTrack - our smart EV bike with accident prevention technology. Our team won the hackathon with a grant amount of ₹14.25 lakhs, making this a government-funded project.</p>
+                <p>Currently, we're working on developing the prototype for AppaTrack, which integrates multiple safety systems to prevent bike accidents before they happen. This includes features like alcohol detection, speed control, airbag protection, and real-time tracking.</p>
+                <p>The hackathon win has been a significant milestone in my journey as an engineer and innovator, and I'm excited to bring this life-saving technology to the market.</p>
+            </div>
+            <div class="about-poster fade-in delay-3">
+                <div class="poster-container">
+                    <img src="Images/MSME Image PSN.jpg" alt="Hackathon Winning Poster" class="poster">
+                    <p class="award-note">Awarded ₹14.25 Lakhs Grant | Government Funded Project</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES SECTION ===== -->
+    <section id="features" class="features">
+        <h2 class="section-title fade-in">Our <span>Safety Features</span></h2>
+        <div class="features-grid">
+            <div class="feature-card fade-in delay-1">
+                <div class="feature-icon">
+                    <i class="fas fa-helmet-safety"></i>
+                </div>
+                <h3>Alcohol Detection & Helmet Compliance</h3>
+                <p>Bike only starts when helmet is worn and no alcohol is detected. Integrated sensors ensure rider safety before ignition.</p>
+            </div>
+            <div class="feature-card fade-in delay-2">
+                <div class="feature-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <h3>Intelligent Speed Control</h3>
+                <p>Automatic warnings and engine cutoff when overspeeding is detected, preventing reckless riding.</p>
+            </div>
+            <div class="feature-card fade-in delay-3">
+                <div class="feature-icon">
+                    <i class="fas fa-air-freshener"></i>
+                </div>
+                <h3>Protective Airbag System</h3>
+                <p>Deploys when dangerous angles or impacts are detected, reducing injury risks.</p>
+            </div>
+            <div class="feature-card fade-in delay-1">
+                <div class="feature-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h3>Occupant Detection</h3>
+                <p>Prevents operation with more than two riders, ensuring optimal weight distribution.</p>
+            </div>
+            <div class="feature-card fade-in delay-2">
+                <div class="feature-icon">
+                    <i class="fas fa-weight-hanging"></i>
+                </div>
+                <h3>Smart Load Management</h3>
+                <p>Prevents bike operation when overloaded beyond safety limits.</p>
+            </div>
+            <div class="feature-card fade-in delay-3">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3>Live GPS Tracking</h3>
+                <p>Real-time location monitoring via the AppaTrack mobile app for security and emergency response.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== INVESTORS SECTION ===== -->
+    <section id="investors" class="investors">
+        <div class="investors-content fade-in">
+            <h2 class="section-title">Invest in <span>Safer Roads</span></h2>
+            <p>AppaTrack is seeking visionary investors to bring this life-saving technology to the market. With our government-funded prototype development already underway and a proven track record from winning the MSME Idea Hackathon 2.0, we're positioned to revolutionize two-wheeler safety.</p>
+            <p>Join us in creating the future of smart, safe electric mobility with cutting-edge accident prevention systems that can save thousands of lives annually.</p>
+            <a href="#contact" class="cta-button">Contact for Investment</a>
+        </div>
+    </section>
+
+    <!-- ===== CONTACT SECTION (NEW) ===== -->
+    <section id="contact" class="contact">
+        <h2 class="section-title fade-in">Get in <span>Touch</span></h2>
+
+        <div class="contact-content-wrapper fade-in delay-1">
+            <div class="contact-image">
+                <img src="https://t4.ftcdn.net/jpg/02/63/38/55/360_F_263385574_H7SxVE8PwEY6p3Ur32MI4CsdgwXhEoaM.jpg" alt="Contact Us Illustration" />
+            </div>
+            <div class="contact-form-new">
+                 <!-- You can add a heading here if you like -->
+                 <!-- <h3>Send us a Message</h3> -->
+                <form action="https://formsubmit.co/appatrackofficial@gmail.com" method="POST">
+                    <!-- FormSubmit Settings -->
+                    <input type="hidden" name="_captcha" value="false"> <!-- Disable Captcha - Use ReCaptcha on FormSubmit dashboard instead if needed -->
+                    <input type="hidden" name="_template" value="table"> <!-- Use table format for email -->
+                    <!-- Removed _next field to handle submission with JavaScript -->
+                    <input type="hidden" name="_subject" value="New Contact Form Submission from AppaTrack Website"> <!-- Optional: Email Subject -->
+
+                    <!-- Using Labels and Inputs from the provided code -->
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" required></textarea> <!-- Adjusted rows slightly -->
+                    </div>
+                    <button type="submit" class="submit-btn" id="contactSubmitBtn">Submit</button> <!-- Added ID for JS -->
+                </form>
+            </div>
+            <!-- Area to display success/error messages -->
+            <div id="formStatusMessage" class="form-status" style="flex-basis: 100%;"></div>
+        </div>
+    </section>
+    <!-- ===== END CONTACT SECTION (NEW) ===== -->
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-content fade-in"> <!-- Added fade-in class -->
+            <div class="social-icons">
+                <a href="https://wa.me/917904207175"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://www.instagram.com/i_am_vishnu_..?igsh=MTBucmduaW9rejJiaA%3D%3D&utm_source=ig_contact_invite"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.linkedin.com/in/vishnu2304/"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/iamvishnu2304"><i class="fab fa-github"></i></a>
+            </div>
+            <p class="copyright">&copy; 2025 AppaTrack | Smart EV Bike with Accident Prevention. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- ===== SCROLL TO TOP BUTTON ===== -->
+    <div class="scroll-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // Mobile Menu Toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                menuToggle.classList.remove('active');
+            });
+        });
+
+        // Active navigation link based on scroll position
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const navHeight = document.querySelector('header').offsetHeight || 80; // Get actual nav height
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                // Adjust trigger point slightly above the section top, considering nav height
+                if (pageYOffset >= (sectionTop - navHeight - 50)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+             // Special case for reaching the bottom of the page
+             if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 50) {
+                const lastSection = sections[sections.length - 1];
+                if (lastSection) current = lastSection.getAttribute('id');
+             }
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${current}`) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Show/hide scroll to top button
+            const scrollTop = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('active');
+            } else {
+                scrollTop.classList.remove('active');
+            }
+
+            // Add/remove 'scrolled' class to header
+            const header = document.querySelector('header');
+            if (window.pageYOffset > 10) { // Add shadow after scrolling down a bit
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth Scrolling for all links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                // Handle the case where href="#" might point to the top
+                const targetElement = targetId === '#' ? document.body : document.querySelector(targetId);
+
+                if (targetElement) {
+                    let offsetTop = targetElement.offsetTop;
+                    // Adjust for fixed navbar height, only if not scrolling to the very top
+                    if (targetId !== '#') {
+                         const navHeight = document.querySelector('header').offsetHeight || 80;
+                         offsetTop -= navHeight;
+                    }
+
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Scroll to top button
+        document.querySelector('.scroll-top').addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Scroll Animation (Fade-In/Slide-In Effect) - Using Intersection Observer for better performance
+        const animatedElements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right');
+
+        const observerOptions = {
+            root: null, // relative to document viewport
+            rootMargin: '0px',
+            threshold: 0.1 // trigger when 10% of the element is visible
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1'; // Make visible
+                    // Apply transform based animation if needed
+                    if (entry.target.classList.contains('slide-in-left')) {
+                        entry.target.style.transform = 'translateX(0)';
+                    } else if (entry.target.classList.contains('slide-in-right')) {
+                        entry.target.style.transform = 'translateX(0)';
+                    } else if (entry.target.classList.contains('fade-in')) {
+                         entry.target.style.transform = 'translateY(0)';
+                    }
+                    // Optional: Unobserve after animation to save resources
+                    observer.unobserve(entry.target);
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        animatedElements.forEach(el => {
+             // Set initial states for animations handled by JS observer
+             el.style.opacity = '0'; // Start hidden
+             if (el.classList.contains('slide-in-left')) {
+                 el.style.transform = 'translateX(-50px)';
+             } else if (el.classList.contains('slide-in-right')) {
+                 el.style.transform = 'translateX(50px)';
+             } else if (el.classList.contains('fade-in')) {
+                 el.style.transform = 'translateY(20px)';
+             }
+             // Use transition property defined in CSS, but ensure it's set
+             el.style.transition = el.style.transition || 'opacity 0.8s ease-out, transform 0.8s ease-out';
+             // Respect delays defined by classes like .delay-1, .delay-2 etc.
+             const delayClass = Array.from(el.classList).find(cls => cls.startsWith('delay-'));
+             if (delayClass) {
+                 const delayValue = parseFloat(delayClass.replace('delay-', '')) * 0.2; // Assuming delay-1 = 0.2s, delay-2 = 0.4s etc.
+                 el.style.transitionDelay = `${delayValue}s`;
+             }
+             observer.observe(el);
+        });
+
+        // Ensure footer content is observed for fade-in
+        const footerContent = document.querySelector('.footer-content');
+        if (footerContent) observer.observe(footerContent);
+        // Add submitting text feedback and handle AJAX submission
+        const contactForm = document.querySelector('.contact-form-new form'); // Get the form element
+        const submitButton = document.getElementById('contactSubmitBtn');
+        const formStatusDiv = document.getElementById('formStatusMessage');
+        const formContainer = document.querySelector('.contact-form-new'); // Get the container holding the form
+
+        if (contactForm && submitButton && formStatusDiv && formContainer) {
+            contactForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default page reload
+
+                // Show submitting state
+                submitButton.textContent = 'Submitting...';
+                submitButton.disabled = true;
+                formStatusDiv.style.display = 'none'; // Hide previous status
+
+                const formData = new FormData(contactForm);
+                const formAction = contactForm.action; // Get the FormSubmit URL
+
+                try {
+                    const response = await fetch(formAction, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json' // Important for FormSubmit AJAX
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Success! Hide form, show message
+                        formContainer.style.display = 'none'; // Hide the form container
+                        formStatusDiv.textContent = 'Thank you, our members will contact you soon.';
+                        formStatusDiv.className = 'form-status success'; // Apply success style
+                        formStatusDiv.style.display = 'block'; // Make sure it's visible
+                    } else {
+                        // Handle server errors (e.g., FormSubmit issue)
+                        throw new Error('Submission failed. Please try again.');
+                    }
+                } catch (error) {
+                    // Handle network errors or the error thrown above
+                    console.error("Form submission error:", error); // Log error for debugging
+                    formStatusDiv.textContent = 'An error occurred: ' + error.message;
+                    formStatusDiv.className = 'form-status error'; // Add an error class if you define styles for it
+                    formStatusDiv.style.display = 'block';
+                    submitButton.textContent = 'Submit'; // Reset button text
+                    submitButton.disabled = false; // Re-enable button
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
